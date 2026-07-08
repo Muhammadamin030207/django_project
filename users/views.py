@@ -3,8 +3,10 @@ from rest_framework.generics import CreateAPIView,RetrieveUpdateAPIView,Retrieve
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from .serializers import RegisterSerializers,LoginSerializer,MeSerializer,ProfileUpdateSerializer
-
+from .serializers import RegisterSerializers,LoginSerializer,UserSerializer,ProfileUpdateSerializer
+from rest_framework.generics import ListAPIView
+from .models import User
+from products.models import Product
 class RegisterView(CreateAPIView):
     serializer_class=RegisterSerializers
 
@@ -36,7 +38,7 @@ class LoginView(CreateAPIView):
         )
 
 class MeView(RetrieveAPIView):
-    serializer_class=MeSerializer
+    serializer_class=UserSerializer
     permission_classes=[IsAuthenticated]
 
     def get_object(self):
@@ -52,7 +54,7 @@ class ProfileUpdateView(RetrieveUpdateAPIView):
 
     
 class MyProfileView(RetrieveAPIView):
-    serializer_class=MeSerializer
+    serializer_class=UserSerializer
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
