@@ -28,13 +28,22 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 class UserSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = "__all__"
+
+    def validate(self, attrs):
+        if attrs.get("role") == "super_admin":
+            if User.objects.filter(role="super_admin").exists():
+                raise serializers.ValidationError(
+                    "Projectda faqat bitta super_admin bo'lishi mumkin."
+                )
+        return attrs
+
+
+class UserRoleChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['id','username','email','first_name','last_name']
-
-
-
-class ProfileUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=User
-        fields=['username','first_name','last_name','email']
+        fields=['role']
+        

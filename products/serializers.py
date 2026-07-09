@@ -1,8 +1,11 @@
 from rest_framework import serializers
+
+import subcategory
 from .models import Product
 
 
 class ProductSerializers(serializers.ModelSerializer):
+    category=serializers.CharField(source='category.name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     subcategory_name = serializers.CharField(source='subcategory.name', read_only=True)
 
@@ -20,17 +23,17 @@ class ProductSerializers(serializers.ModelSerializer):
             'subcategory_name',
             'incoming_price',
             'stock',
-            'is_active',
-            'created_date',
             'created_at',
         ]
-        read_only_fields = ['id', 'category_name', 'subcategory_name', 'created_at']
+        read_only_fields = ['id', 'category_name', 'subcategory_name', 'created_at','created_date',]
 
     def create(self, validated_data):
-        subcategory = validated_data.get('subcategory')
-        validated_data['subcategory'] = subcategory.category
+        subcategory = validated_data.get("subcategory")
 
-        return Product.objects.create(**validated_data)
+        if subcategory:
+            validated_data["category"] = subcategory.category
+
+            return Product.objects.create(**validated_data)
 
 
 

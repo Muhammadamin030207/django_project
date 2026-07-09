@@ -1,61 +1,59 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView,RetrieveUpdateAPIView,RetrieveAPIView
+from rest_framework.generics import CreateAPIView,RetrieveAPIView,RetrieveUpdateAPIView,UpdateAPIView,ListAPIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from .serializers import RegisterSerializers,LoginSerializer,UserSerializer,ProfileUpdateSerializer
-from rest_framework.generics import ListAPIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
-from products.models import Product
+from .serializers import RegisterSerializers,LoginSerializer,UserSerializer,UserRoleChangeSerializer
+from .permissions import IsAdminUser
+
+
 class RegisterView(CreateAPIView):
-    serializer_class=RegisterSerializers
-
-class UserListView(ListAPIView):
-    serializer_class=UserSerializer
-    permission_classes=[IsAuthenticated]
-
-    def get_queryset(self):
-        return User.objects.all()
-
+    serializer_class = RegisterSerializers
 
 
 class LoginView(CreateAPIView):
-    serializer_class=LoginSerializer
+    serializer_class = LoginSerializer
 
-    def create(self,request,*args,**kwargs):
-        serializer=self.get_serializer(data=request.data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user=serializer.validated_data['user']
-        refresh=RefreshToken.for_user(user)
-        
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
+
         return Response(
             {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
+
 class MeView(RetrieveAPIView):
-    serializer_class=UserSerializer
-    permission_classes=[IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-class ProfileUpdateView(RetrieveUpdateAPIView):
-    serializer_class=ProfileUpdateSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
 
-    
-class MyProfileView(RetrieveAPIView):
-    serializer_class=UserSerializer
-    permission_classes=[IsAuthenticated]
+class ProfileView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
+    def get_object(self):
+        return self.request.user
+
+
+class UserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
+
+
+class UserRoleChangeView(UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRoleChangeSerializer
+    permission_classes = [IsAdminUser]

@@ -7,7 +7,7 @@ from django.conf import settings
 
 class Product(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='products')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='products')
     subcategory = models.ForeignKey(
         SubCategory,
         on_delete=models.CASCADE,
@@ -21,7 +21,7 @@ class Product(models.Model):
     stock = models.IntegerField(default=0)
     description = models.TextField()
     is_active = models.BooleanField(default=True)
-    created_date = models.DateField()
+    created_date = models.DateField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
