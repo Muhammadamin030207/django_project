@@ -1,3 +1,5 @@
+from urllib import request
+
 from rest_framework import serializers
 from django.contrib.auth import authenticate, get_user_model
 User = get_user_model()
@@ -38,18 +40,20 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         request = self.context.get("request")
 
+        if request and request.user.role == "admin":
+            new_role = attrs.get("role")
+
+        if new_role in ["admin", "super_admin"]:
+            raise serializers.ValidationError(
+                "Admin admin yoki super_admin rolini bera olmaydi."
+            )
+
         if attrs.get("role") == "super_admin":
-            if User.objects.filter(role="super_admin").exclude(id=self.instance.id if self.instance else None).exists():
+            if User.objects.filter(role="super_admin").exclude(
+                pk=self.instance.pk if self.instance else None
+            ).exists():
                 raise serializers.ValidationError(
                     "Projectda faqat bitta super_admin bo'lishi mumkin."
-                )
-
-        if request and request.user.role == "admin":
-            role = attrs.get("role")
-
-            if role not in ["seller"]:
-                raise serializers.ValidationError(
-                    "Admin faqat seller rolini bera oladi."
                 )
 
         return attrs
@@ -58,4 +62,24 @@ class UserRoleChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=['role']
+    def validate(self, attrs):
+        request = self.context.get("request")
+
+        if request and request.user.role == "admin":
+            new_role = attrs.get("role")
+
+        if new_role in ["admin", "super_admin"]:
+            raise serializers.ValidationError(
+                "Admin userni admin yoki super_admin rolini bera olmaydi faqat seller rolini bera oladi."
+            )
+
+        if attrs.get("role") == "super_admin":
+            if User.objects.filter(role="super_admin").exclude(
+                pk=self.instance.pk if self.instance else None
+            ).exists():
+                raise serializers.ValidationError(
+                    "Projectda faqat bitta super_admin bo'lishi mumkin."
+                )
+
+        return attrs
         
