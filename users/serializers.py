@@ -27,20 +27,32 @@ class LoginSerializer(serializers.Serializer):
         attrs['user']=user
         return attrs
 
+from rest_framework import serializers
+
 class UserSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = User
         fields = "__all__"
 
     def validate(self, attrs):
+        request = self.context.get("request")
+
         if attrs.get("role") == "super_admin":
-            if User.objects.filter(role="super_admin").exists():
+            if User.objects.filter(role="super_admin").exclude(id=self.instance.id if self.instance else None).exists():
                 raise serializers.ValidationError(
                     "Projectda faqat bitta super_admin bo'lishi mumkin."
                 )
-        return attrs
 
+        if request and request.user.role == "admin":
+            role = attrs.get("role")
+
+            if role not in ["seller"]:
+                raise serializers.ValidationError(
+                    "Admin faqat seller rolini bera oladi."
+                )
+
+        return attrs
 
 class UserRoleChangeSerializer(serializers.ModelSerializer):
     class Meta:
